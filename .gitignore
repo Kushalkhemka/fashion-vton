@@ -1,0 +1,14 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.env
+.env.*
+backend/runtime/
+node_modules/
+dist/
+website/dist/
+website/node_modules/
+fashion-recommendation-system/embeddings*.pkl
+fashion-recommendation-system/filenames*.pkl

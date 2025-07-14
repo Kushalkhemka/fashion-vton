@@ -5,23 +5,7 @@ import { Heart, ShoppingCart, Sparkles, ChevronLeft, ChevronRight } from "lucide
 import { cn } from "@/lib/utils";
 import { useCart } from "@/contexts/CartContext";
 import { toast } from "@/hooks/use-toast";
-
-interface Product {
-  id: number;
-  name: string;
-  price: number;
-  image: string;
-  category: string;
-  itemType: string;
-  color: string;
-  look: string;
-  sleeveLength: string;
-  length: string;
-  neckline: string;
-  prints: string;
-  modelImages?: string[]; // Added for slideshow
-  clothImage?: string; // Added for slideshow
-}
+import { Product } from "@/lib/catalog";
 
 interface ProductCardProps {
   product: Product;
@@ -37,10 +21,10 @@ const ProductCard = ({ product, viewMode, index, onViewSimilar, onTryOn }: Produ
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [slideIndex, setSlideIndex] = useState(0);
   const { dispatch } = useCart();
+  const primaryImage = product.modelImages?.[0] || product.clothImage || "/placeholder.svg";
 
-  // Compose the slideshow images: all model images + cloth image (last)
   const slideshowImages = [
-    ...(product.modelImages || [product.image]),
+    ...(product.modelImages?.length ? product.modelImages : [primaryImage]),
     ...(product.clothImage ? [product.clothImage] : [])
   ];
 
@@ -59,25 +43,22 @@ const ProductCard = ({ product, viewMode, index, onViewSimilar, onTryOn }: Produ
     e.stopPropagation();
     setIsAddingToCart(true);
     
-    // Add item to cart
     dispatch({
       type: 'ADD_ITEM',
       payload: {
         id: product.id,
         name: product.name,
         price: product.price,
-        image: product.image,
+        image: primaryImage,
         color: product.color,
       }
     });
 
-    // Show success toast
     toast({
       title: "Added to cart!",
       description: `${product.name} has been added to your cart.`,
     });
 
-    // Simulate animation delay
     setTimeout(() => {
       setIsAddingToCart(false);
     }, 600);
@@ -162,7 +143,7 @@ const ProductCard = ({ product, viewMode, index, onViewSimilar, onTryOn }: Produ
               )}
               {isAddingToCart ? 'Adding...' : 'Add to Cart'}
             </Button>
-            <Button variant="outline" className="flex-1">
+            <Button variant="outline" className="flex-1" onClick={(e) => { e.stopPropagation(); onTryOn && onTryOn(product); }}>
               <Sparkles className="h-4 w-4 mr-2" />
               Virtual Try-On
             </Button>

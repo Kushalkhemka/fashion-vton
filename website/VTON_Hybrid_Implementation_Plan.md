@@ -1,7 +1,7 @@
 # Hybrid Virtual Try-On (VTON) Implementation Plan
 
 ## Overview
-This plan describes how to implement a hybrid virtual try-on system that uses a local VTON pipeline for known dataset images and the Segmind API for external images. The system will:
+This historical plan describes how to implement a hybrid virtual try-on system that uses a local VTON pipeline for known dataset images and the Segmind API for external images. Runtime code now uses the configurable backend in `backend/vton_api`; paths below are examples from the original local prototype. The system will:
 - Use local scripts (step 1 + step 2) for images found in the dataset.
 - Use the Segmind API for images outside the dataset.
 - Save and serve the output image for rendering in the frontend.
@@ -12,8 +12,8 @@ This plan describes how to implement a hybrid virtual try-on system that uses a 
 
 ### 1. Local Dataset Check
 - **Goal:** When a user uploads a model image, check if its filename (ignoring macOS underscore files) exists in:
-  - `/Volumes/Seagate/scw-vton/SCW-VTON/data/test/image`
-  - `/Volumes/Seagate/scw-vton/SCW-VTON/data/train/image`
+  - configured test image directory
+  - configured train image directory
 - **Feasibility:** Straightforward using Python's `os.path.exists` and filtering out files starting with `._`.
 
 ### 2. Local VTON Pipeline (Step 1 + Step 2)
@@ -26,7 +26,7 @@ This plan describes how to implement a hybrid virtual try-on system that uses a 
   - Output images are saved to a results directory, which can be monitored.
 
 ### 3. Output Handling
-- **Goal:** Once the output image is generated, move/copy it to `/Volumes/Seagate/scw-vton/style-flow-motion/public/output` and render it in the frontend.
+- **Goal:** Once the output image is generated, move/copy it to the configured output directory and render it in the frontend.
 - **Feasibility:** Simple file operation.
 
 ### 4. Fallback to Segmind API
@@ -97,4 +97,4 @@ This plan describes how to implement a hybrid virtual try-on system that uses a 
 
 ---
 
-**Contact the dev team for further details or implementation support.** 
+**Contact the dev team for further details or implementation support.**

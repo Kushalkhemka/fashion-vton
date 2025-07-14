@@ -7,6 +7,7 @@ https://github.com/CompVis/taming-transformers
 """
 
 import torch
+import os
 import torch.nn as nn
 import numpy as np
 import pytorch_lightning as pl
@@ -1587,7 +1588,8 @@ class LatentTryOnDiffusion(LatentDiffusion):
     def __init__(self, first_stage_config, cond_stage_config, *args, **kwargs):
         super().__init__(first_stage_config, cond_stage_config, *args, **kwargs)
         self.vgg = VGG19_feature_color_torchversion(vgg_normal_correct=True)
-        self.vgg.load_state_dict(torch.load("/Volumes/Seagate/scw-vton/SCW-VTON/models/vgg/vgg19_conv.pth", map_location="cpu"))
+        vgg_checkpoint = os.getenv("SCW_VTON_VGG_CKPT", "models/vgg/vgg19_conv.pth")
+        self.vgg.load_state_dict(torch.load(vgg_checkpoint, map_location="cpu"))
         self.vgg.eval()
 
     def get_input(self, batch, k, return_first_stage_outputs=False, force_c_encode=False, cond_key=None,

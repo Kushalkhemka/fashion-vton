@@ -19,12 +19,13 @@ def get_opt():
     parser.add_argument("--dataroot", default="")
     parser.add_argument("--datamode", default="test", choices=["train", "test"])
     parser.add_argument("--pair_mode", default="unpaired", choices=["paired", "unpaired"]) 
+    parser.add_argument("--data_list", default=None)
     parser.add_argument("--only_warping", action="store_true", default=False)
     parser.add_argument("--ckpt_dir", default="ckpts")
     parser.add_argument("--fine_width", type=int, default=384)
     parser.add_argument("--fine_height", type=int, default=512)
     opt = parser.parse_args()
-    opt.data_list = opt.datamode + "_pairs.txt"
+    opt.data_list = opt.data_list or opt.datamode + "_pairs.txt"
     return opt
 
 def train_network(opt, data_loader, model1, model2, model3, device):
@@ -118,13 +119,13 @@ if __name__ == "__main__":
 
     print("================= load model =================")
     model1 = Network1().to(device)
-    model1.load_state_dict(torch.load("/Volumes/Seagate/scw-vton/SCW-VTON/ckpts/SCW.pth", map_location=device, weights_only=True))
+    model1.load_state_dict(torch.load(os.path.join(opt.ckpt_dir, "SCW.pth"), map_location=device, weights_only=True))
     if not opt.only_warping:
         model2 = Network2().to(device)
-        model2.load_state_dict(torch.load("/Volumes/Seagate/scw-vton/SCW-VTON/ckpts/SLE.pth", map_location=device, weights_only=True))
+        model2.load_state_dict(torch.load(os.path.join(opt.ckpt_dir, "SLE.pth"), map_location=device, weights_only=True))
 
         model3 = Network3().to(device)
-        model3.load_state_dict(torch.load("/Volumes/Seagate/scw-vton/SCW-VTON/ckpts/LTS.pth", map_location=device, weights_only=True))
+        model3.load_state_dict(torch.load(os.path.join(opt.ckpt_dir, "LTS.pth"), map_location=device, weights_only=True))
     else:
         model2 = None
         model3 = None
@@ -133,4 +134,3 @@ if __name__ == "__main__":
     with torch.no_grad():
         train_network(opt, data_loader, model1, model2, model3, device)
     print("finished!")
-

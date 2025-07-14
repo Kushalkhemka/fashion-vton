@@ -183,10 +183,11 @@ if __name__ == "__main__":
     parser.add_argument("--dataroot", default="data")
     parser.add_argument("--datamode", default="test", choices=["train", "test"])
     parser.add_argument("--pair_mode", default="unpaired", choices=["paired", "unpaired"])  
+    parser.add_argument("--data_list", default=None)
     parser.add_argument("--fine_width", type=int, default=384)
     parser.add_argument("--fine_height", type=int, default=512)
     opt = parser.parse_args()
-    opt.data_list = "/Volumes/Seagate/scw-vton/SCW-VTON/data/test_pairs.txt"
+    opt.data_list = opt.data_list or f"{opt.datamode}_pairs.txt"
     
     dataset = Dataset(opt)
     data_loader = DataLoader(opt, dataset)

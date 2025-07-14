@@ -1,36 +1,35 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
-import dressesImage from "@/assets/category-dresses.jpg";
-import topsImage from "@/assets/category-tops.jpg";
-import outerwearImage from "@/assets/category-outerwear.jpg";
+
+const placeholderImage = "/placeholder.svg";
 
 const categories = [
   {
     id: 1,
     name: "Dresses",
-    image: dressesImage,
+    image: placeholderImage,
     description: "Elegant dresses for every occasion",
     itemCount: "120+ styles"
   },
   {
     id: 2,
     name: "Tops",
-    image: topsImage,
+    image: placeholderImage,
     description: "Contemporary blouses and shirts",
     itemCount: "85+ styles"
   },
   {
     id: 3,
     name: "Outerwear",
-    image: outerwearImage,
+    image: placeholderImage,
     description: "Sophisticated coats and jackets",
     itemCount: "45+ styles"
   },
   {
     id: 4,
     name: "Skirts",
-    image: dressesImage, // Reusing for now
+    image: placeholderImage,
     description: "Modern silhouettes and cuts",
     itemCount: "60+ styles"
   }

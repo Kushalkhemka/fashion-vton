@@ -6,6 +6,8 @@ import { useCart } from "@/contexts/CartContext";
 import CartDrawer from "./CartDrawer";
 import CheckoutModal from "./CheckoutModal";
 import { useNavigate } from "react-router-dom";
+import { apiPost } from "@/config/api";
+import { CatalogFilters, filtersToSearchParams } from "@/lib/catalog";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -15,46 +17,9 @@ const Header = () => {
   const [searchLoading, setSearchLoading] = useState(false);
   const navigate = useNavigate();
   
-  // LLM call using OpenAI Chat Completion API
-  async function refineQueryWithLLM(query) {
-    // The available options for each filter
-    const item_options = ["", "Bikini Top", "Blouse", "Blouson", "Bolero", "Bra Top", "Bustier", "Camisole", "Cape/Shawl", "Cardigan", "Denim Dress", "Fitness Jacket", "Full Zip Jacket", "Full Zip Vest", "Fur Jacket", "Halter Neck Dress", "Hoodie", "Jacket", "Jumper Dress", "Knit Dress", "Knit vest", "Leather Jacket", "Leggings/Treggings", "Offshoulder Dress", "One piece Swimsuit", "Pique Dress", "Pleats Skirt", "Polo Shirts", "Ruffle skirt", "Sarong skirt", "Shirt Dress", "Shirts", "Slip Dress", "Sweat Pants", "Sweater", "Sweatshirt", "T-shirts", "Tank Top", "Trumpet Skirt", "Tube Top", "Tunic Dress", "Turtleneck", "Vest", "Vest Suit", "Wide Pants", "Wrap Dress", "Wrap Skirt", "Y-Shirts", "denim skirt", "flared skirt", "pajama-top"];
-    const looks_options = ["", "Casual", "Ethnic", "Feminine", "Marine", "Military", "Office look", "Outdoor Sports", "Party", "Preppy", "Punk", "Resort", "Retro"];
-    const colors_options = ["", "Beige", "Black", "Blue", "Brown", "Green", "Grey", "Khaki", "Lavender", "Mint", "Navy", "Orange", "Pink", "Purple", "Red", "Sky Blue", "White", "Wine", "Yellow"];
-    const sleeveLength_options = ["", "Cropped Sleeve", "Long Sleeve", "Short Sleeve", "Sleeveless"];
-    const length_options = ["", "cropped", "half", "kneelength", "long", "midi", "mini", "normal", "short"];
-    const neckLine_options = ["", "Bow Collar", "Collarless", "Halter Neck", "Hood", "Offshoulder", "Round Neck", "Shawl Collar", "Shirt Collar", "Square Neck", "Stand-up Collar", "Tailored Collar", "Turtle Neck", "U Neck", "V Neck"];
-    const prints_options = ["", "Camouflage", "Check", "Dot", "Floral", "Gradation", "Leopard", "Paisley", "Skull", "Solid", "Stripe", "Tiedyed", "Zebra", "ZigZag", "graphic", "lettering"];
-    const systemPrompt = `You are a helpful assistant for a fashion search engine. Given a user query, map it to the following filter options. Only use the provided options. Return a JSON object with these keys: itemType, look, color, sleeveLength, length, neckline, prints. If a filter is not specified in the query, leave it as an empty string.\n\nOptions:\nitemType: ${item_options.slice(1).join(", ")}\nlook: ${looks_options.slice(1).join(", ")}\ncolor: ${colors_options.slice(1).join(", ")}\nsleeveLength: ${sleeveLength_options.slice(1).join(", ")}\nlength: ${length_options.slice(1).join(", ")}\nneckline: ${neckLine_options.slice(1).join(", ")}\nprints: ${prints_options.slice(1).join(", ")}\n\nExample output: {"itemType": "T-shirts", "look": "Casual", "color": "Black", "sleeveLength": "Short Sleeve", "length": "normal", "neckline": "V Neck", "prints": "lettering"}`;
-    const apiKey = "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";
-    const payload = {
-      model: "gpt-4.1",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: query }
-      ],
-      temperature: 0.0,
-      max_tokens: 256
-    };
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${apiKey}`
-      },
-      body: JSON.stringify(payload)
-    });
-    if (!response.ok) throw new Error("OpenAI API error");
-    const data = await response.json();
-    const content = data.choices?.[0]?.message?.content;
-    try {
-      // Try to parse the JSON from the LLM response
-      const filters = JSON.parse(content);
-      return filters;
-    } catch (err) {
-      // If parsing fails, fallback to empty filters
-      return {};
-    }
+  async function refineQueryWithLLM(query: string): Promise<CatalogFilters> {
+    const response = await apiPost<{ filters: CatalogFilters }>("/api/search/parse", { query });
+    return response.filters;
   }
 
   const handleSearch = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -63,12 +28,10 @@ const Header = () => {
     setSearchLoading(true);
     try {
       const filters = await refineQueryWithLLM(searchQuery.trim());
-      // Build query string from filters
-      const params = new URLSearchParams();
-      (Object.entries(filters) as [string, string][]).forEach(([key, value]) => {
-        if (typeof value === 'string' && value) params.set(key, value);
-      });
+      const params = filtersToSearchParams(filters);
       navigate(`/category/all?${params.toString()}`);
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "Search parsing failed.");
     } finally {
       setSearchLoading(false);
     }

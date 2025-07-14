@@ -1,45 +1,21 @@
-from flask import Flask, request, jsonify
-import pickle
-import numpy as np
-import json
-from sklearn.neighbors import NearestNeighbors
-from flask_cors import CORS
-import os
+"""Compatibility entry point for recommendation endpoints.
 
-# --- Load your model and data as in main.py ---
-with open('embeddings.pkl', 'rb') as f:
-    feature_list = np.array(pickle.load(f))
-with open('filenames.pkl', 'rb') as f:
-    filenames = pickle.load(f)
+The canonical API now lives under backend/vton_api and also exposes the
+legacy /similar route used by the old frontend.
+"""
 
-with open('vitonhd_train_tagged.json', 'r') as f:
-    tag_data = json.load(f)["data"]
+from pathlib import Path
+import sys
 
-# Build a mapping from file_name (basename only) to index
-filename_to_index = {os.path.basename(fn): idx for idx, fn in enumerate(filenames)}
+REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 
-# --- Flask app ---
-app = Flask(__name__)
-CORS(app)
+from backend.vton_api import create_app  # noqa: E402
 
-@app.route('/similar', methods=['POST'])
-def similar():
-    data = request.json
-    file_name = data.get('file_name')
-    if file_name not in filename_to_index:
-        return jsonify({'error': 'file_name not found'}), 404
+app = create_app()
 
-    idx = filename_to_index[file_name]
-    query_feature = feature_list[idx]
 
-    # Find 10 nearest neighbors (excluding the query itself)
-    neighbors = NearestNeighbors(n_neighbors=11, algorithm='brute', metric='euclidean')
-    neighbors.fit(feature_list)
-    distances, indices = neighbors.kneighbors([query_feature])
-    similar_indices = [i for i in indices[0] if i != idx][:10]
-    similar_files = [os.path.basename(filenames[i]) for i in similar_indices]
-
-    return jsonify({'similar': similar_files})
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5001, debug=True) 
+if __name__ == "__main__":
+    settings = app.config["settings"]
+    app.run(host=settings.host, port=settings.port, debug=settings.debug)

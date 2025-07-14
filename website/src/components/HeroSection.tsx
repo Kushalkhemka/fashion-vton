@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/button";
-import heroImage from "@/assets/hero-model.jpg";
 import { useParallax } from "@/hooks/useScrollAnimation";
 
 const HeroSection = () => {
@@ -10,7 +9,10 @@ const HeroSection = () => {
       {/* Background with gradient overlay */}
       <div 
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: `url(${heroImage})` }}
+        style={{
+          backgroundImage: "url('/placeholder.svg')",
+          transform: `translateY(${parallaxOffset}px)`,
+        }}
       >
         <div className="absolute inset-0 bg-gradient-to-r from-background/90 via-background/50 to-transparent"></div>
       </div>

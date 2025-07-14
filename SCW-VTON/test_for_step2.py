@@ -1,11 +1,8 @@
 import argparse, os
-# Force CPU usage to avoid PyTorch compatibility issues
-os.environ['CUDA_VISIBLE_DEVICES'] = ''
-os.environ['PYTORCH_ENABLE_MPS_FALLBACK'] = '1'
+if os.getenv("SCW_VTON_FORCE_CPU", "0") == "1":
+    os.environ["CUDA_VISIBLE_DEVICES"] = ""
+os.environ.setdefault("PYTORCH_ENABLE_MPS_FALLBACK", "1")
 import torch
-# Disable CUDA and MPS to force CPU usage
-torch.backends.cudnn.enabled = False
-torch.backends.mps.enabled = False
 import numpy as np
 from omegaconf import OmegaConf
 from PIL import Image
@@ -163,14 +160,29 @@ def main():
         choices=["full", "autocast"],
         default="autocast"
     )
+    parser.add_argument(
+        "--device",
+        choices=["auto", "cpu", "cuda", "mps"],
+        default=os.getenv("SCW_VTON_DEVICE", "auto"),
+        help="device used for inference",
+    )
 
     opt = parser.parse_args()
 
     seed_everything(opt.seed)
 
-    # Force CPU usage to avoid PyTorch compatibility issues
-    device = torch.device("cpu")
-    print(f"Using CPU device: {device}")
+    if opt.device == "auto":
+        if torch.cuda.is_available():
+            device = torch.device("cuda")
+        elif torch.backends.mps.is_available():
+            device = torch.device("mps")
+        else:
+            device = torch.device("cpu")
+    else:
+        device = torch.device(opt.device)
+    if device.type == "cpu":
+        torch.backends.cudnn.enabled = False
+    print(f"Using device: {device}")
 
     config = OmegaConf.load(f"{opt.config}")
     model = load_model_from_config(config, f"{opt.ckpt_dir}/try_on.pth", device)
@@ -190,7 +202,6 @@ def main():
 
     iterator = tqdm(loader, desc='Test Dataset', total=len(loader))
     
-    # Use CPU precision scope
     precision_scope = nullcontext
     
     with torch.no_grad():

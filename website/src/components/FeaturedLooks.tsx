@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import casualLook from "@/assets/look-casual.jpg";
-import partyLook from "@/assets/look-party.jpg";
+
+const placeholderImage = "/placeholder.svg";
 
 const looks = [
   {
     id: 1,
     name: "Effortless Casual",
-    image: casualLook,
+    image: placeholderImage,
     description: "Perfect for weekend brunches and casual meetups",
     pieces: ["Silk Blouse", "High-waist Jeans", "Statement Accessories"],
     price: "From $240"
@@ -16,7 +16,7 @@ const looks = [
   {
     id: 2,
     name: "Evening Elegance",
-    image: partyLook,
+    image: placeholderImage,
     description: "Sophisticated styling for special occasions",
     pieces: ["Midi Dress", "Statement Jewelry", "Classic Heels"],
     price: "From $320"
@@ -24,7 +24,7 @@ const looks = [
   {
     id: 3,
     name: "Professional Chic",
-    image: casualLook, // Reusing for now
+    image: placeholderImage,
     description: "Polished looks for the modern workplace",
     pieces: ["Blazer", "Tailored Trousers", "Classic Blouse"],
     price: "From $280"
@@ -32,7 +32,7 @@ const looks = [
   {
     id: 4,
     name: "Bohemian Dreams",
-    image: partyLook, // Reusing for now
+    image: placeholderImage,
     description: "Free-spirited style with artistic flair",
     pieces: ["Flowy Dress", "Layered Jewelry", "Vintage Accessories"],
     price: "From $190"

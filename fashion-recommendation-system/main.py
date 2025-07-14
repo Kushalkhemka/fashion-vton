@@ -64,8 +64,8 @@ selected_model = st.selectbox(
 # Load embeddings and filenames for selected model
 option = MODEL_OPTIONS[selected_model]
 feature_list = np.array(pickle.load(open(option['embedding_file'], 'rb')))
-# Update filenames to use the correct cloth directory and ignore MacOS '._' files
-cloth_dir = '/Volumes/Seagate/scw-vton/SCW-VTON/data/train/cloth'
+# Update filenames to use the configured cloth directory and ignore MacOS '._' files
+cloth_dir = os.getenv('RECOMMENDER_IMAGE_DIR', 'images/cloth')
 filenames = [os.path.join(cloth_dir, f) for f in os.listdir(cloth_dir) if not f.startswith('._')]
 
 # Load tag metadata

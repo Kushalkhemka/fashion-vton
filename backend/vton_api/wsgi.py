@@ -1,10 +1,4 @@
-"""Compatibility entry point for the unified VTON backend API.
-
-Prefer running:
-    python -m backend.vton_api.wsgi
-"""
-
-from backend.vton_api import create_app
+from .app import create_app
 
 app = create_app()
 
