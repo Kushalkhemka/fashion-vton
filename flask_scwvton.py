@@ -1,5 +1,5 @@
 import os
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from werkzeug.utils import secure_filename
 import shutil
 import subprocess
@@ -24,8 +24,7 @@ TEST_PAIRS_PATH = os.path.join(SCW_VTON_ROOT, "data", TEST_PAIRS_FILENAME)
 ABSOLUTE_DATAROOT = "/Volumes/Seagate/scw-vton/SCW-VTON/data"
 ABSOLUTE_CONFIG = "/Volumes/Seagate/scw-vton/SCW-VTON/configs/viton.yaml"
 ABSOLUTE_CKPT_DIR = "/Volumes/Seagate/scw-vton/SCW-VTON/ckpts"
-SEG_API_KEY = "SG_8eecc1cccd02d40b"
-SEG_API_URL = "https://api.segmind.com/v1/idm-vton"
+
 
 # Ensure output dir exists
 os.makedirs(OUTPUT_DIR, exist_ok=True)
@@ -108,7 +107,7 @@ def tryon():
             out_img = run_step1_and_step2(model_filename, cloth_filename)
             return jsonify({"status": "success", "source": "local", "output_image": f"/output/{os.path.basename(out_img)}"})
         else:
-            # Use Segmind API
+        
             cloth_file = request.files.get('cloth_image_file')
             if cloth_file:
                 cloth_path = os.path.join(OUTPUT_DIR, secure_filename(cloth_file.filename))
@@ -125,6 +124,66 @@ def tryon():
                     return jsonify({"status": "error", "message": "Cloth image not found for Segmind API."}), 400
             out_img = call_segmind_api(model_path, cloth_path)
             return jsonify({"status": "success", "source": "segmind", "output_image": f"/output/{os.path.basename(out_img)}"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/output/<path:filename>')
+def serve_output_file(filename):
+    return send_from_directory(OUTPUT_DIR, filename)
+
+@app.route('/upload_image', methods=['POST'])
+def upload_image():
+    try:
+        if 'model_image' not in request.files:
+            return jsonify({"status": "error", "message": "No file part"}), 400
+        file = request.files['model_image']
+        if file.filename == '':
+            return jsonify({"status": "error", "message": "No selected file"}), 400
+        filename = secure_filename(file.filename)
+        save_path = os.path.join(OUTPUT_DIR, filename)
+        file.save(save_path)
+        # Return the public URL (using ngrok base URL)
+        public_url = f"https://winston-struggle-alto-skirt.trycloudflare.com/output/{filename}"
+        return jsonify({"status": "success", "public_url": public_url})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+# --- 360 Video Generation Endpoints ---
+import time
+
+@app.route('/generate_360_video', methods=['POST'])
+def generate_360_video():
+    try:
+        data = request.get_json()
+        image_url = data.get('image_url')
+        if not image_url:
+            return jsonify({"status": "error", "message": "Missing image_url"}), 400
+
+        api_key = "SG_304d3bf4ba67ebc6"
+        segmind_url = "https://api.segmind.com/workflows/683a8839558645d556597ca4-v2"
+        payload = {"Fashion_Model": image_url}
+        headers = {'x-api-key': api_key, 'Content-Type': 'application/json'}
+
+        response = requests.post(segmind_url, json=payload, headers=headers)
+        if response.status_code != 200:
+            return jsonify({"status": "error", "message": "Segmind API error", "details": response.text}), 500
+
+        return jsonify(response.json())
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/poll_360_video', methods=['POST'])
+def poll_360_video():
+    try:
+        data = request.get_json()
+        poll_url = data.get('poll_url')
+        if not poll_url:
+            return jsonify({"status": "error", "message": "Missing poll_url"}), 400
+
+        api_key = "SG_304d3bf4ba67ebc6"
+        headers = {'x-api-key': api_key}
+        response = requests.get(poll_url, headers=headers)
+        return jsonify(response.json())
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
