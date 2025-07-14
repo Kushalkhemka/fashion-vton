@@ -1,12 +1,12 @@
 # Fashion VTON
 
-Virtual try-on and fashion recommendation workspace built around SCW-VTON, HR-VTON preprocessing, catalog search, and a React dashboard.
+Virtual try-on and fashion recommendation workspace built around SCW-VTON shape-aware warping, OpenPose-derived pose inputs, catalog search, and a React dashboard.
 
 ## Structure
 
 - `backend/vton_api/` contains the Flask API, configuration, try-on orchestration, Segmind integration, catalog metadata, recommendation search, and search parsing.
 - `website/` contains the Vite React frontend. It calls the backend through `VITE_BACKEND_URL`.
-- `SCW-VTON/`, `HR-VTON/`, and `openpose/` are research/vendor implementations used by the pipeline.
+- `SCW-VTON/` and `openpose/` are research/vendor implementations used by the pipeline.
 - `fashion-recommendation-system/` keeps the embedding build and Streamlit exploration scripts.
 - `color_analysis.ipynb` and `product_generation.ipynb` are exploratory notebooks from the color/product generation branch.
 
